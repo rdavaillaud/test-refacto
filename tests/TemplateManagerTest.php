@@ -128,4 +128,78 @@ Bien cordialement,
 L'équipe Dummy.com
 ", $message->content);
     }
+
+    /**
+     * @test
+     */
+    public function testItShowsQuoteSummaryHtml()
+    {
+        $faker = \Faker\Factory::create();
+
+        $destinationId                  = $faker->randomNumber();
+        $expectedDestination = DestinationRepository::getInstance()->getById($destinationId);
+        $expectedUser        = ApplicationContext::getInstance()->getCurrentUser();
+
+
+        $quote = new Quote($faker->randomNumber(), $faker->randomNumber(), $destinationId, $faker->date());
+        $expectedSummary = Quote::renderHtml($quote);
+
+        $template = new Template(
+            1,
+            'subject',
+            "
+[quote:summary_html]
+");
+        $templateManager = new TemplateManager();
+
+        $message = $templateManager->getTemplateComputed(
+            $template,
+            [
+                'quote' => $quote
+            ]
+        );
+
+
+        $this->assertEquals("
+" . $expectedSummary . "
+", $message->content);
+
+    }
+
+    /**
+     * @test
+     */
+    public function testItShowsQuoteSummary()
+    {
+        $faker = \Faker\Factory::create();
+
+        $destinationId                  = $faker->randomNumber();
+        $expectedDestination = DestinationRepository::getInstance()->getById($destinationId);
+        $expectedUser        = ApplicationContext::getInstance()->getCurrentUser();
+
+
+        $quote = new Quote($faker->randomNumber(), $faker->randomNumber(), $destinationId, $faker->date());
+        $expectedSummary = Quote::renderText($quote);
+
+        $template = new Template(
+            1,
+            'subject',
+            "
+[quote:summary]
+");
+        $templateManager = new TemplateManager();
+
+        $message = $templateManager->getTemplateComputed(
+            $template,
+            [
+                'quote' => $quote
+            ]
+        );
+
+
+        $this->assertEquals("
+" . $expectedSummary . "
+", $message->content);
+
+    }
 }
