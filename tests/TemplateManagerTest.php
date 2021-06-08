@@ -32,7 +32,7 @@ class TemplateManagerTest extends PHPUnit_Framework_TestCase
     /**
      * @test
      */
-    public function test()
+    public function testItFillTheTemplateWithoutDestinationLink()
     {
         $faker = \Faker\Factory::create();
 
@@ -40,7 +40,9 @@ class TemplateManagerTest extends PHPUnit_Framework_TestCase
         $expectedDestination = DestinationRepository::getInstance()->getById($destinationId);
         $expectedUser        = ApplicationContext::getInstance()->getCurrentUser();
 
+
         $quote = new Quote($faker->randomNumber(), $faker->randomNumber(), $destinationId, $faker->date());
+        $usefulObject = SiteRepository::getInstance()->getById($quote->siteId);
 
         $template = new Template(
             1,
@@ -68,6 +70,58 @@ L'équipe Dummy.com
 Bonjour " . $expectedUser->firstname . ",
 
 Merci de nous avoir contacté pour votre livraison à " . $expectedDestination->countryName . ".
+
+Bien cordialement,
+
+L'équipe Dummy.com
+", $message->content);
+    }
+
+    /**
+     * @test
+     */
+    public function testItFillTheTemplateWithDestinationLink()
+    {
+        $faker = \Faker\Factory::create();
+
+        $destinationId                  = $faker->randomNumber();
+        $expectedDestination = DestinationRepository::getInstance()->getById($destinationId);
+        $expectedUser        = ApplicationContext::getInstance()->getCurrentUser();
+
+
+        $quote = new Quote($faker->randomNumber(), $faker->randomNumber(), $destinationId, $faker->date());
+        $usefulObject = SiteRepository::getInstance()->getById($quote->siteId);
+
+        $template = new Template(
+            1,
+            'Votre livraison à [quote:destination_name]',
+            "
+Bonjour [user:first_name],
+
+Merci de nous avoir contacté pour votre livraison à [quote:destination_name].
+
+Vous pouvez voir les détails de votre devis à cette adresse: [quote:destination_link]
+
+Bien cordialement,
+
+L'équipe Dummy.com
+");
+        $templateManager = new TemplateManager();
+
+        $message = $templateManager->getTemplateComputed(
+            $template,
+            [
+                'quote' => $quote
+            ]
+        );
+
+        $this->assertEquals('Votre livraison à ' . $expectedDestination->countryName, $message->subject);
+        $this->assertEquals("
+Bonjour " . $expectedUser->firstname . ",
+
+Merci de nous avoir contacté pour votre livraison à " . $expectedDestination->countryName . ".
+
+Vous pouvez voir les détails de votre devis à cette adresse: " . $usefulObject->url . '/' . $expectedDestination->countryName . '/quote/' . $quote->id . "
 
 Bien cordialement,
 
