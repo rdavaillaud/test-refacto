@@ -29,21 +29,39 @@ class TemplateManagerTest extends PHPUnit_Framework_TestCase
     {
     }
 
-    /**
-     * @test
-     */
-    public function testItFillTheTemplateWithoutDestinationLink()
+    public function data()
     {
         $faker = \Faker\Factory::create();
-
-        $destinationId                  = $faker->randomNumber();
+        $destinationId = $faker->randomNumber();
         $expectedDestination = DestinationRepository::getInstance()->getById($destinationId);
-        $expectedUser        = ApplicationContext::getInstance()->getCurrentUser();
+        $user = new User($faker->randomNumber(), $faker->firstName, $faker->lastName, $faker->email);
 
 
-        $quote = new Quote($faker->randomNumber(), $faker->randomNumber(), $destinationId, $faker->date());
-        $usefulObject = SiteRepository::getInstance()->getById($quote->siteId);
+        return [
+            "quote but no user" => [
+                [
+                    'quote' => new Quote($faker->randomNumber(), $faker->randomNumber(), $destinationId, $faker->date())
+                ],
+                $expectedDestination,
+                ApplicationContext::getInstance()->getCurrentUser()
+            ],
+            "quote and user" => [
+                [
+                    'quote' => new Quote($faker->randomNumber(), $faker->randomNumber(), $destinationId, $faker->date()),
+                    'user' => $user
+                ],
+                $expectedDestination,
+                $user
+            ],
+        ];
+    }
 
+    /**
+     * @dataProvider data
+     * @test
+     */
+    public function testItFillTheTemplateWithoutDestinationLink($arguments, $expectedDestination, $expectedUser)
+    {
         $template = new Template(
             1,
             'Votre livraison à [quote:destination_name]',
@@ -60,9 +78,7 @@ L'équipe Dummy.com
 
         $message = $templateManager->getTemplateComputed(
             $template,
-            [
-                'quote' => $quote
-            ]
+            $arguments
         );
 
         $this->assertEquals('Votre livraison à ' . $expectedDestination->countryName, $message->subject);
