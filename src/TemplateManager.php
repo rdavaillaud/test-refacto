@@ -27,33 +27,14 @@ class TemplateManager
             $usefulObject = SiteRepository::getInstance()->getById($quote->siteId);
             $destination = DestinationRepository::getInstance()->getById($quote->destinationId);
 
-            $containsSummaryHtml = strpos($text, '[quote:summary_html]');
-            $containsSummary     = strpos($text, '[quote:summary]');
+            $text = $this->replaceTag($text, '[quote:summary_html]', Quote::renderHtml($_quoteFromRepository));
+            $text = $this->replaceTag($text, '[quote:summary]', Quote::renderText($_quoteFromRepository));
 
-            if ($containsSummaryHtml !== false || $containsSummary !== false) {
-                if ($containsSummaryHtml !== false) {
-                    $text = str_replace(
-                        '[quote:summary_html]',
-                        Quote::renderHtml($_quoteFromRepository),
-                        $text
-                    );
-                }
-                if ($containsSummary !== false) {
-                    $text = str_replace(
-                        '[quote:summary]',
-                        Quote::renderText($_quoteFromRepository),
-                        $text
-                    );
-                }
-            }
-
-            (strpos($text, '[quote:destination_name]') !== false) and $text = str_replace('[quote:destination_name]',$destination->countryName,$text);
+            $text = $this->replaceTag($text, '[quote:destination_name]', $destination->countryName);
         }
 
-        if (strpos($text, '[quote:destination_link]') !== false){
-            $destinationLink = isset($destination) ? $usefulObject->url . '/' . $destination->countryName . '/quote/' . $_quoteFromRepository->id : '';
-            $text = str_replace('[quote:destination_link]', $destinationLink, $text);
-        }
+        $destinationLink = isset($destination) ? $usefulObject->url . '/' . $destination->countryName . '/quote/' . $_quoteFromRepository->id : '';
+        $text = $this->replaceTag($text, '[quote:destination_link]', $destinationLink);
 
         /*
          * USER
@@ -61,9 +42,27 @@ class TemplateManager
          */
         $_user  = (isset($data['user'])  and ($data['user']  instanceof User))  ? $data['user']  : $APPLICATION_CONTEXT->getCurrentUser();
         if($_user) {
-            (strpos($text, '[user:first_name]') !== false) and $text = str_replace('[user:first_name]'       , ucfirst(mb_strtolower($_user->firstname)), $text);
+            $text = $this->replaceTag($text, '[user:first_name]', ucfirst(mb_strtolower($_user->firstname)));
         }
 
         return $text;
+    }
+
+    /**
+     *
+     * @param string $text
+     * @param string $tag
+     * @param string $value
+     * @param string $defaultValue
+     * @return string
+     */
+    private function replaceTag($text, $tag, $value, $defaultValue = '')
+    {
+        if (strpos($text, $tag) === false) {
+            // no need to replace
+            return $text;
+        }
+
+        return str_replace($tag, $value ?: $defaultValue, $text);
     }
 }
