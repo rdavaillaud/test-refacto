@@ -19,26 +19,23 @@ class TemplateManager
     {
         $APPLICATION_CONTEXT = ApplicationContext::getInstance();
 
+        $dataSource = array();
+        // Quote [quote:*]
         $quote = (isset($data['quote']) and $data['quote'] instanceof Quote) ? $data['quote'] : null;
 
         if ($quote)
         {
-            $dataSource = $quote->toTemplateDataSource('quote');
-            foreach ($dataSource as $tag => $value) {
-                $text = $this->replaceTag($text, $tag, $value);
-            }
+            $dataSource += $quote->toTemplateDataSource('quote');
         }
 
-        /*
-         * USER
-         * [user:*]
-         */
+        // User [user:*]
         $_user  = (isset($data['user'])  and ($data['user']  instanceof User))  ? $data['user']  : $APPLICATION_CONTEXT->getCurrentUser();
         if($_user) {
-            $dataSource = $_user->toTemplateDataSource('user');
-            foreach ($dataSource as $tag => $value) {
-                $text = $this->replaceTag($text, $tag, $value);
-            }
+            $dataSource += $_user->toTemplateDataSource('user');
+        }
+
+        foreach ($dataSource as $tag => $value) {
+            $text = $this->replaceTag($text, $tag, $value);
         }
 
         return $text;
