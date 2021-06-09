@@ -43,7 +43,7 @@ class TemplateManagerTest extends PHPUnit_Framework_TestCase
                 [
                     'quote' => new Quote($faker->randomNumber(), $faker->randomNumber(), $destinationId, $faker->date())
                 ],
-                $expectedDestination,
+                $expectedDestination->countryName,
                 ApplicationContext::getInstance()->getCurrentUser()
             ],
             "quote and user" => [
@@ -51,8 +51,14 @@ class TemplateManagerTest extends PHPUnit_Framework_TestCase
                     'quote' => new Quote($faker->randomNumber(), $faker->randomNumber(), $destinationId, $faker->date()),
                     'user' => $user
                 ],
-                $expectedDestination,
+                $expectedDestination->countryName,
                 $user
+            ],
+            "no quote and no user" => [
+                [
+                ],
+                '',
+                ApplicationContext::getInstance()->getCurrentUser()
             ],
         ];
     }
@@ -82,11 +88,11 @@ L'équipe Dummy.com
             $arguments
         );
 
-        $this->assertEquals('Votre livraison à ' . $expectedDestination->countryName, $message->subject);
+        $this->assertEquals('Votre livraison à ' . $expectedDestination, $message->subject);
         $this->assertEquals("
 Bonjour " . $expectedUser->firstname . ",
 
-Merci de nous avoir contacté pour votre livraison à " . $expectedDestination->countryName . ".
+Merci de nous avoir contacté pour votre livraison à " . $expectedDestination . ".
 
 Bien cordialement,
 
