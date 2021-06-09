@@ -1,6 +1,6 @@
 <?php
 
-class Quote
+class Quote implements TemplateDataSourceInterface
 {
     public $id;
     public $siteId;
@@ -23,5 +23,19 @@ class Quote
     public static function renderText(Quote $quote)
     {
         return (string) $quote->id;
+    }
+
+    public function toTemplateDataSource($tagPrefix)
+    {
+        $usefulObject = SiteRepository::getInstance()->getById($this->siteId);
+        $destination = DestinationRepository::getInstance()->getById($this->destinationId);
+        $destinationLink = isset($destination) ? $usefulObject->url . '/' . $destination->countryName . '/quote/' . $this->id : '';
+
+        return array(
+            "[$tagPrefix:summary_html]" => Quote::renderHtml($this),
+            "[$tagPrefix:summary]" => Quote::renderText($this),
+            "[$tagPrefix:destination_name]" => $destination->countryName,
+            "[$tagPrefix:destination_link]" => $destinationLink
+        );
     }
 }

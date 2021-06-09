@@ -23,18 +23,11 @@ class TemplateManager
 
         if ($quote)
         {
-            $_quoteFromRepository = QuoteRepository::getInstance()->getById($quote->id);
-            $usefulObject = SiteRepository::getInstance()->getById($quote->siteId);
-            $destination = DestinationRepository::getInstance()->getById($quote->destinationId);
-
-            $text = $this->replaceTag($text, '[quote:summary_html]', Quote::renderHtml($_quoteFromRepository));
-            $text = $this->replaceTag($text, '[quote:summary]', Quote::renderText($_quoteFromRepository));
-
-            $text = $this->replaceTag($text, '[quote:destination_name]', $destination->countryName);
+            $dataSource = $quote->toTemplateDataSource('quote');
+            foreach ($dataSource as $tag => $value) {
+                $text = $this->replaceTag($text, $tag, $value);
+            }
         }
-
-        $destinationLink = isset($destination) ? $usefulObject->url . '/' . $destination->countryName . '/quote/' . $_quoteFromRepository->id : '';
-        $text = $this->replaceTag($text, '[quote:destination_link]', $destinationLink);
 
         /*
          * USER
@@ -42,7 +35,10 @@ class TemplateManager
          */
         $_user  = (isset($data['user'])  and ($data['user']  instanceof User))  ? $data['user']  : $APPLICATION_CONTEXT->getCurrentUser();
         if($_user) {
-            $text = $this->replaceTag($text, '[user:first_name]', ucfirst(mb_strtolower($_user->firstname)));
+            $dataSource = $_user->toTemplateDataSource('user');
+            foreach ($dataSource as $tag => $value) {
+                $text = $this->replaceTag($text, $tag, $value);
+            }
         }
 
         return $text;

@@ -1,6 +1,6 @@
 <?php
 
-class User
+class User implements TemplateDataSourceInterface
 {
     public $id;
     public $firstname;
@@ -13,5 +13,12 @@ class User
         $this->firstname = $firstname;
         $this->lastname = $lastname;
         $this->email = $email;
+    }
+
+    public function toTemplateDataSource($tagPrefix)
+    {
+        return array(
+            "[$tagPrefix:first_name]" => ucfirst(mb_strtolower($this->firstname))
+        );
     }
 }
