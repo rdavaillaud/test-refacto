@@ -17,27 +17,26 @@ class TemplateManager
 
     private function computeText($text, array $data)
     {
-        $APPLICATION_CONTEXT = ApplicationContext::getInstance();
-
+        $applicationContext = ApplicationContext::getInstance();
         $dataSource = array();
+
         // Quote [quote:*]
         $quote = (isset($data['quote']) and $data['quote'] instanceof Quote) ? $data['quote'] : null;
-
-        if ($quote)
-        {
+        if ($quote) {
             $dataSource += $quote->toTemplateDataSource('quote');
         }
 
         // User [user:*]
-        $_user  = (isset($data['user'])  and ($data['user']  instanceof User))  ? $data['user']  : $APPLICATION_CONTEXT->getCurrentUser();
-        if($_user) {
+        $_user = (isset($data['user']) and ($data['user'] instanceof User)) ? $data['user'] : $applicationContext->getCurrentUser(
+        );
+        if ($_user) {
             $dataSource += $_user->toTemplateDataSource('user');
         }
 
         foreach ($dataSource as $tag => $value) {
             $text = $this->replaceTag($text, $tag, $value);
         }
-        $text = $this->cleanTags($text, array('quote','user'));
+        $text = $this->cleanTags($text, array('quote', 'user'));
 
         return $text;
     }
@@ -56,13 +55,12 @@ class TemplateManager
             // no need to replace
             return $text;
         }
-
         return str_replace($tag, $value ?: $defaultValue, $text);
     }
 
     private function cleanTags($text, $tagPrefixes)
     {
-        $text = mb_ereg_replace('\[('.implode('|',$tagPrefixes).'):[^]]+\]', '', $text, 'j');
+        $text = mb_ereg_replace('\[(' . implode('|', $tagPrefixes) . '):[^]]+\]', '', $text, 'j');
         if ($text === false) {
             throw new Exception('Error on cleaning tags');
         }
