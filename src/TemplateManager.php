@@ -37,6 +37,7 @@ class TemplateManager
         foreach ($dataSource as $tag => $value) {
             $text = $this->replaceTag($text, $tag, $value);
         }
+        $text = $this->cleanTags($text, array('quote','user'));
 
         return $text;
     }
@@ -57,5 +58,15 @@ class TemplateManager
         }
 
         return str_replace($tag, $value ?: $defaultValue, $text);
+    }
+
+    private function cleanTags($text, $tagPrefixes)
+    {
+        $text = mb_ereg_replace('\[('.implode('|',$tagPrefixes).'):[^]]+\]', '', $text, 'j');
+        if ($text === false) {
+            throw new Exception('Error on cleaning tags');
+        }
+
+        return $text;
     }
 }
