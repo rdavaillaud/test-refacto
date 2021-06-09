@@ -36,29 +36,33 @@ class TemplateManagerTest extends PHPUnit_Framework_TestCase
         $destinationId = $faker->randomNumber();
         $expectedDestination = DestinationRepository::getInstance()->getById($destinationId);
         $user = new User($faker->randomNumber(), $faker->firstName, $faker->lastName, $faker->email);
+        $expectedDate = $faker->date();
 
 
         return [
             "quote but no user" => [
                 [
-                    'quote' => new Quote($faker->randomNumber(), $faker->randomNumber(), $destinationId, $faker->date())
+                    'quote' => new Quote($faker->randomNumber(), $faker->randomNumber(), $destinationId, $expectedDate)
                 ],
                 $expectedDestination->countryName,
-                ApplicationContext::getInstance()->getCurrentUser()
+                ApplicationContext::getInstance()->getCurrentUser(),
+                $expectedDate
             ],
             "quote and user" => [
                 [
-                    'quote' => new Quote($faker->randomNumber(), $faker->randomNumber(), $destinationId, $faker->date()),
+                    'quote' => new Quote($faker->randomNumber(), $faker->randomNumber(), $destinationId, $expectedDate),
                     'user' => $user
                 ],
                 $expectedDestination->countryName,
-                $user
+                $user,
+                $expectedDate
             ],
             "no quote and no user" => [
                 [
                 ],
                 '',
-                ApplicationContext::getInstance()->getCurrentUser()
+                ApplicationContext::getInstance()->getCurrentUser(),
+                ''
             ],
         ];
     }
@@ -67,7 +71,7 @@ class TemplateManagerTest extends PHPUnit_Framework_TestCase
      * @dataProvider data
      * @test
      */
-    public function testItFillTheTemplateWithoutDestinationLink($arguments, $expectedDestination, $expectedUser)
+    public function testItFillTheTemplateWithoutDestinationLink($arguments, $expectedDestination, $expectedUser, $expectedDate)
     {
         $template = new Template(
             1,
@@ -75,7 +79,7 @@ class TemplateManagerTest extends PHPUnit_Framework_TestCase
             "
 Bonjour [user:first_name],
 
-Merci de nous avoir contacté pour votre livraison à [quote:destination_name].
+Merci de nous avoir contacté pour votre devis du [quote:date] de la livraison à [quote:destination_name].
 
 Bien cordialement,
 
@@ -92,7 +96,7 @@ L'équipe Dummy.com
         $this->assertEquals("
 Bonjour " . $expectedUser->firstname . ",
 
-Merci de nous avoir contacté pour votre livraison à " . $expectedDestination . ".
+Merci de nous avoir contacté pour votre devis du " . $expectedDate . " de la livraison à " . $expectedDestination . ".
 
 Bien cordialement,
 

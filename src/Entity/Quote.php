@@ -35,7 +35,8 @@ class Quote implements TemplateDataSourceInterface
             "[$tagPrefix:summary_html]" => Quote::renderHtml($this),
             "[$tagPrefix:summary]" => Quote::renderText($this),
             "[$tagPrefix:destination_name]" => $destination->countryName,
-            "[$tagPrefix:destination_link]" => $destinationLink
+            "[$tagPrefix:destination_link]" => $destinationLink,
+            "[$tagPrefix:date]" => $this->dateQuoted
         );
     }
 }
